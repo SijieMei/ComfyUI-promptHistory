@@ -1,7 +1,7 @@
 """Top-level package for prompt_history."""
 
 
-from .src.prompt_history.nodes import PromptHistory
+from .src.promptHistory import PromptHistory
 
 WEB_DIRECTORY = "./web"
 

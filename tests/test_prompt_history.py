@@ -3,7 +3,7 @@
 """Tests for `prompt_history` package."""
 
 import pytest
-from src.prompt_history.nodes import Example
+from promptHistory import Example
 
 @pytest.fixture
 def example_node():
