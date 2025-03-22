@@ -1,21 +1,11 @@
 import { app } from "../../scripts/app.js"
 import { api } from "../../../scripts/api.js"
 
-console.log("PromptHistory.js loaded")
-
 app.registerExtension({ 
 	name: "prmopt.history.extention",
 	async setup() { 
-        const logToPanel = (message) => {
-            app.ui.log(`[PromptHistory] ${message}`);
-        };
-
-        api.addEventListener("promptHistory.update.history.stack", (msg) => {
-            this.historyStack = msg.data;
-            logToPanel(`收到历史堆栈更新消息: ${JSON.stringify(this.historyStack)}`);
-        });
-
-        logToPanel("Setup complete!");
+        console.log("PromptHistory.js setup")
+        // Perform any setup actions here, if needed
 	},
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
         console.log(222)
@@ -46,6 +36,18 @@ app.registerExtension({
                 onPropertyChanged?.apply(this, arguments)
                 app.ui.log(`Property changed: ${property}, New Value: ${value}, Previous Value: ${prevValue}`);
                 // ...handle property change logic...
+            }
+            
+            const onExecuted = nodeType.prototype.onExecute
+            nodeType.prototype.onExecuted = async () => {
+                console.log(2222222)
+                onExecuted?.apply(this, arguments)
+                const resp = await api.fetchApi("/promptHistory/historyStack", { cache: "no-store" });
+                console.log(resp)
+                if (resp.status === 200) {
+                    return await resp.text();
+                }
+                return undefined;
             }
         }
     }
