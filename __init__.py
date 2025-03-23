@@ -3,7 +3,7 @@
 
 from .src.promptHistory import PromptHistory
 
-WEB_DIRECTORY = "./web"
+WEB_DIRECTORY = "./web/js"
 
 NODE_CLASS_MAPPINGS = {
     "PromptHistory": PromptHistory

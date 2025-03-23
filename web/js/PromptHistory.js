@@ -1,53 +1,68 @@
 import { app } from "../../scripts/app.js"
-import { api } from "../../../scripts/api.js"
+// import { api } from "../../scripts/api.js"
+import { ComfyWidgets } from "../../scripts/widgets.js"
 
 app.registerExtension({ 
 	name: "prmopt.history.extention",
-	async setup() { 
-        console.log("PromptHistory.js setup")
-        // Perform any setup actions here, if needed
-	},
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        console.log(222)
-        if (nodeType.ComfyClass == "PromptHistory") {
+        if (nodeData.name === "PromptHistory") {
             // Modify nodeType before registration
 
-            const onConfigure = nodeType.prototype.onConfigure;
-            nodeType.prototype.onConfigure = function(data) {
-                onConfigure?.apply(this, arguments)
-                console.log("PromptHistory node created")
-                this.historyStack = []
-                const indexWidget = this.widgets.find(w => w.name === "lastPromptIndex")
-                if(indexWidget){
-                    indexWidget.value = 0
-                    indexWidget.callback = (value) => {
-                        console.log("lastPromptIndex callback", value)
-                        const promptWidget = this.widgets.find(w => w.name === "prompt")
-                        promptWidget.value = "222"
-                        // promptWidget.value = this.historyStack[value]
-                    }
-                    promptWidget.callback(0)
-                }
-                app.ui.log(`[PromptHistory] Node configured with data: ${JSON.stringify(data)}`);
-            }
+            // const onConfigure = nodeType.prototype.onConfigure;
+            // nodeType.prototype.onConfigure = function() {
+            //     onConfigure?.apply(this, arguments)
+            // }
 
             const onPropertyChanged = nodeType.prototype.onPropertyChanged
-            nodeType.prototype.onPropertyChanged = (property, value, prevValue) => {
+            nodeType.prototype.onPropertyChanged = function (property, value, prevValue) {
+                console.log(5555)
                 onPropertyChanged?.apply(this, arguments)
-                app.ui.log(`Property changed: ${property}, New Value: ${value}, Previous Value: ${prevValue}`);
-                // ...handle property change logic...
+                // if (this.widgets) {
+				// 	const pos = this.widgets.findIndex((w) => w.name === "content2");
+				// 	if (pos !== -1) {
+				// 		for (let i = pos; i < this.widgets.length; i++) {
+				// 			this.widgets[i].onRemove?.();
+				// 		}
+				// 		this.widgets.length = pos;
+				// 	}
+				// }
+                // const resp = await api.fetchApi("/promptHistory/historyStack", { cache: "no-store" });
+                // const data = JSON.stringify(resp)
+
+                if (this.widgets) {
+                    const pos = this.widgets.findIndex((w) => w.name === "content");
+                    if (pos !== -1) {
+                        for (let i = pos; i < this.widgets.length; i++) {
+                            this.widgets[i].onRemove?.();
+                        }
+                        this.widgets.length = pos;
+                    }
+                }
+				const w = ComfyWidgets["STRING"](this, "content", ["STRING", { multiline: true }], app).widget;
+				w.inputEl.readOnly = true;
+				w.inputEl.style.opacity = 0.6;
+				w.value = [property, value, prevValue].join(" | "); // data;
             }
             
-            const onExecuted = nodeType.prototype.onExecute
-            nodeType.prototype.onExecuted = async () => {
-                console.log(2222222)
+            const onExecuted = nodeType.prototype.onExecuted
+            nodeType.prototype.onExecuted = function (message) {
                 onExecuted?.apply(this, arguments)
-                const resp = await api.fetchApi("/promptHistory/historyStack", { cache: "no-store" });
-                console.log(resp)
-                if (resp.status === 200) {
-                    return await resp.text();
+                console.log(this, message)
+                // const resp = await api.fetchApi("/promptHistory/historyStack", { cache: "no-store" });
+                // const data = JSON.stringify(resp)
+                if (this.widgets) {
+                    const pos = this.widgets.findIndex((w) => w.name === "content");
+                    if (pos !== -1) {
+                        for (let i = pos; i < this.widgets.length; i++) {
+                            this.widgets[i].onRemove?.();
+                        }
+                        this.widgets.length = pos;
+                    }
                 }
-                return undefined;
+				const w = ComfyWidgets["STRING"](this, "content", ["STRING", { multiline: true }], app).widget;
+				w.inputEl.readOnly = true;
+				w.inputEl.style.opacity = 0.6;
+				w.value = message; // data;
             }
         }
     }
